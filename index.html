@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>tldr. — Summarize any page instantly</title>
+  <meta name="description" content="Get the key points of any article, blog post, or doc in seconds. Ask follow-up questions without leaving the tab." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #111111;
+      --surface:  #1a1a1a;
+      --surface2: #222222;
+      --border:   #2e2e2e;
+      --text:     #f0f0f0;
+      --muted:    #888;
+      --accent:   #7c5cfc;
+      --gradient: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── Nav ── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 40px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(17,17,17,0.85);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--gradient);
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 900;
+      font-size: 15px;
+    }
+
+    .logo-text {
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--text);
+      letter-spacing: -0.5px;
+    }
+
+    .btn-chrome {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--gradient);
+      color: #fff;
+      text-decoration: none;
+      padding: 10px 22px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 700;
+      transition: opacity 0.15s, transform 0.15s;
+      white-space: nowrap;
+    }
+    .btn-chrome:hover { opacity: 0.88; transform: translateY(-1px); }
+
+    /* ── Hero ── */
+    .hero {
+      text-align: center;
+      padding: 100px 24px 80px;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(124,92,252,0.15);
+      border: 1px solid rgba(124,92,252,0.3);
+      color: #a78bfa;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 5px 14px;
+      border-radius: 999px;
+      margin-bottom: 28px;
+    }
+
+    .hero h1 {
+      font-size: clamp(38px, 6vw, 68px);
+      font-weight: 900;
+      letter-spacing: -2px;
+      line-height: 1.08;
+      margin-bottom: 22px;
+      background: linear-gradient(135deg, #fff 0%, #a78bfa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: clamp(16px, 2.5vw, 20px);
+      color: var(--muted);
+      max-width: 520px;
+      margin: 0 auto 40px;
+      line-height: 1.65;
+    }
+
+    .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--gradient);
+      color: #fff;
+      text-decoration: none;
+      padding: 16px 36px;
+      border-radius: 999px;
+      font-size: 17px;
+      font-weight: 800;
+      box-shadow: 0 8px 32px rgba(124,92,252,0.35);
+      transition: opacity 0.15s, transform 0.15s, box-shadow 0.15s;
+      letter-spacing: -0.2px;
+    }
+    .hero-cta:hover {
+      opacity: 0.92;
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(124,92,252,0.45);
+    }
+
+    .hero-sub {
+      display: block;
+      margin-top: 16px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* ── Preview ── */
+    .preview {
+      display: flex;
+      justify-content: center;
+      padding: 20px 24px 80px;
+    }
+
+    .preview-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+    }
+
+    .preview-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .preview-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--border);
+    }
+    .preview-dot:first-child { background: #ff5f57; }
+    .preview-dot:nth-child(2) { background: #febc2e; }
+    .preview-dot:nth-child(3) { background: #28c840; }
+
+    .preview-label {
+      margin-left: auto;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      background: rgba(124,92,252,0.12);
+      padding: 2px 10px;
+      border-radius: 999px;
+    }
+
+    .preview-section { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+
+    .preview-bullets { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+    .preview-bullets li {
+      display: flex; align-items: flex-start; gap: 8px;
+      font-size: 13px; line-height: 1.5; color: var(--text);
+    }
+    .preview-bullets li::before {
+      content: '';
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+      margin-top: 6px;
+    }
+
+    .preview-kp { background: var(--surface2); border-radius: 12px; padding: 14px; margin-bottom: 16px; }
+    .preview-kp-item { font-size: 12px; color: var(--muted); padding: 5px 0; border-bottom: 1px solid var(--border); }
+    .preview-kp-item:last-child { border-bottom: none; }
+
+    .preview-input {
+      display: flex; gap: 8px; align-items: center;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 10px 14px;
+    }
+    .preview-input span { font-size: 12px; color: var(--muted); flex: 1; }
+    .preview-ask {
+      background: var(--gradient); color: #fff;
+      font-size: 11px; font-weight: 700;
+      padding: 5px 12px; border-radius: 7px;
+      white-space: nowrap;
+    }
+
+    /* ── Features ── */
+    .features {
+      padding: 80px 24px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: clamp(26px, 4vw, 40px);
+      font-weight: 900;
+      letter-spacing: -1px;
+      margin-bottom: 12px;
+    }
+
+    .section-sub {
+      text-align: center;
+      color: var(--muted);
+      font-size: 16px;
+      margin-bottom: 56px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .feature-card:hover { border-color: rgba(124,92,252,0.4); transform: translateY(-2px); }
+
+    .feature-icon {
+      font-size: 28px;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .feature-title {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      letter-spacing: -0.3px;
+    }
+
+    .feature-desc {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ── Stats ── */
+    .stats {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 60px 24px;
+    }
+
+    .stats-inner {
+      max-width: 700px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
+      text-align: center;
+    }
+
+    .stat-num {
+      font-size: clamp(32px, 5vw, 48px);
+      font-weight: 900;
+      letter-spacing: -2px;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* ── CTA ── */
+    .cta {
+      text-align: center;
+      padding: 100px 24px;
+    }
+
+    .cta h2 {
+      font-size: clamp(28px, 5vw, 52px);
+      font-weight: 900;
+      letter-spacing: -1.5px;
+      margin-bottom: 16px;
+    }
+
+    .cta p {
+      color: var(--muted);
+      font-size: 17px;
+      margin-bottom: 40px;
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 28px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .footer-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+    .footer-logo span { font-size: 16px; font-weight: 900; color: var(--text); }
+
+    footer a { color: var(--muted); font-size: 13px; text-decoration: none; transition: color 0.15s; }
+    footer a:hover { color: var(--text); }
+
+    .footer-links { display: flex; gap: 20px; }
+
+    @media (max-width: 600px) {
+      nav { padding: 16px 20px; }
+      footer { padding: 24px 20px; flex-direction: column; align-items: flex-start; }
+      .stats-inner { grid-template-columns: 1fr; gap: 28px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav>
+    <a href="#" class="nav-logo">
+      <div class="logo-icon">T</div>
+      <span class="logo-text">tldr.</span>
+    </a>
+    <a href="CHROME_STORE_URL" class="btn-chrome">
+      Add to Chrome — it's free
+    </a>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-badge">⚡ Free Chrome Extension</div>
+    <h1>Too long?<br>Skip to what matters.</h1>
+    <p>Get the key points of any article, blog post, or doc in seconds. Ask follow-up questions without leaving the tab.</p>
+    <a href="CHROME_STORE_URL" class="hero-cta">
+      Add to Chrome — it's free
+    </a>
+    <span class="hero-sub">No account required · No API key · Just install and go</span>
+  </section>
+
+  <!-- Preview -->
+  <div class="preview">
+    <div class="preview-card">
+      <div class="preview-header">
+        <div class="preview-dot"></div>
+        <div class="preview-dot"></div>
+        <div class="preview-dot"></div>
+        <span class="preview-label">Article</span>
+      </div>
+      <div class="preview-section">Summary</div>
+      <ul class="preview-bullets">
+        <li>Fed raises interest rates by 0.25% amid cooling inflation signals.</li>
+        <li>Markets rally as investors anticipate a pause in the hiking cycle.</li>
+        <li>Chair Powell signals data-dependency for future rate decisions.</li>
+      </ul>
+      <div class="preview-section">Key Points</div>
+      <div class="preview-kp">
+        <div class="preview-kp-item">10-year Treasury yield drops 12 basis points following the announcement.</div>
+        <div class="preview-kp-item">S&P 500 gains 1.4% on the day of the Fed decision.</div>
+        <div class="preview-kp-item">Inflation at 3.2% — down from 9.1% peak in June 2022.</div>
+      </div>
+      <div class="preview-input">
+        <span>Ask a follow-up question…</span>
+        <div class="preview-ask">Ask</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <section class="features">
+    <h2 class="section-title">Everything you need, nothing you don't.</h2>
+    <p class="section-sub">Built for people who read a lot and want to read smarter.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon">⚡</span>
+        <div class="feature-title">Instant summaries</div>
+        <div class="feature-desc">Get the key points of any page in seconds. No copy-paste, no switching tabs.</div>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🎯</span>
+        <div class="feature-title">Adapts to content</div>
+        <div class="feature-desc">Short news gets a tight 2-line summary. Long reads get a full breakdown. The format fits the content.</div>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">💬</span>
+        <div class="feature-title">Ask follow-ups</div>
+        <div class="feature-desc">Not sure about a detail? Ask anything about the article and get a direct answer instantly.</div>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔒</span>
+        <div class="feature-title">No setup required</div>
+        <div class="feature-desc">No account, no API key, no configuration. Install and start summarizing immediately.</div>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📋</span>
+        <div class="feature-title">One-click copy</div>
+        <div class="feature-desc">Copy the full summary to your clipboard instantly to paste anywhere.</div>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🌐</span>
+        <div class="feature-title">Works on any page</div>
+        <div class="feature-desc">News articles, blog posts, research papers, documentation — if it has text, it can be summarized.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="stats">
+    <div class="stats-inner">
+      <div>
+        <div class="stat-num" id="stat-users">—</div>
+        <div class="stat-label">Users</div>
+      </div>
+      <div>
+        <div class="stat-num" id="stat-summaries">—</div>
+        <div class="stat-label">Pages summarized</div>
+      </div>
+      <div>
+        <div class="stat-num" id="stat-minutes">—</div>
+        <div class="stat-label">Minutes saved</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta">
+    <h2>Start reading smarter.</h2>
+    <p>Free forever. Works on any page. No signup needed.</p>
+    <a href="CHROME_STORE_URL" class="hero-cta">
+      Add to Chrome — it's free
+    </a>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <a href="#" class="footer-logo">
+      <div class="logo-icon">T</div>
+      <span>tldr.</span>
+    </a>
+    <div class="footer-links">
+      <a href="YOUR_PRIVACY_POLICY_URL">Privacy Policy</a>
+      <a href="mailto:keswani.hrishikesh7@gmail.com">Contact</a>
+    </div>
+  </footer>
+
+  <script>
+    // Fetch live stats from the worker
+    fetch('https://tldr-proxy.hhhhkeswani.workers.dev/stats')
+      .then(r => r.json())
+      .then(data => {
+        const fmt = n => n >= 1000000 ? (n/1000000).toFixed(1).replace(/\.0$/,'')+'M'
+                       : n >= 1000    ? (n/1000).toFixed(1).replace(/\.0$/,'')+'k'
+                       : String(n);
+        document.getElementById('stat-users').textContent     = fmt(data.users);
+        document.getElementById('stat-summaries').textContent = fmt(data.summaries);
+        document.getElementById('stat-minutes').textContent   = fmt(data.minutes);
+      })
+      .catch(() => {});
+  </script>
+
+</body>
+</html>
